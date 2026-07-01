@@ -8,8 +8,6 @@ O **eDNA Insight** é um projeto em desenvolvimento que tem como objetivo simpli
 
 A proposta é integrar diferentes etapas do pipeline de bioinformática em uma única plataforma, desde a leitura de arquivos de sequenciamento até a geração de relatórios e visualizações interativas.
 
-Este projeto também servirá como base para um Trabalho de Conclusão de Curso (TCC) em Bioinformática.
-
 ---
 
 # 🎯 Objetivos
