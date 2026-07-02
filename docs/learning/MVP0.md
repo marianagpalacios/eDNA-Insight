@@ -44,6 +44,7 @@ O sistema recebe um arquivo FASTA por upload, salva temporariamente esse arquivo
 O resultado final é apresentado em uma tabela com o identificador da sequência, a espécie provável e o percentual de similaridade. Também é gerado um resumo por espécie, um gráfico de barras e um arquivo CSV para download.
 
 Fluxo da aplicação
+```
 Arquivo FASTA
       ↓
 Upload pela interface Streamlit
@@ -67,7 +68,9 @@ Exibição dos resultados
 Geração de gráfico
       ↓
 Exportação em CSV
-Módulos desenvolvidos
+```
+
+## Módulos desenvolvidos
 src/fasta.py
 
 Responsável pela leitura de arquivos FASTA.
