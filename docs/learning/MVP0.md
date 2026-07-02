@@ -14,8 +14,6 @@ O objetivo deste MVP é validar o fluxo mínimo de funcionamento da aplicação:
 6. exibir tabela, gráfico e opção de exportação dos resultados.
 
 ## Estrutura do projeto
-
-```txt
 edna-insight/
 ├── app/
 │   └── main.py
@@ -34,7 +32,9 @@ edna-insight/
 ├── venv/
 ├── requirements.txt
 └── README.md
-Descrição geral
+
+
+## Descrição geral
 
 A aplicação foi construída em Python, utilizando Streamlit para a interface web, Biopython para leitura de arquivos FASTA e Pandas para manipulação de tabelas.
 
