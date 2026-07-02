@@ -14,6 +14,7 @@ O objetivo deste MVP é validar o fluxo mínimo de funcionamento da aplicação:
 6. exibir tabela, gráfico e opção de exportação dos resultados.
 
 ## Estrutura do projeto
+```
 edna-insight/
 ├── app/
 │   └── main.py
@@ -32,7 +33,7 @@ edna-insight/
 ├── venv/
 ├── requirements.txt
 └── README.md
-
+```
 
 ## Descrição geral
 
