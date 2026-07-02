@@ -1,6 +1,6 @@
 # 📚 Developer Notebook — Fundamentos de Bioinformática para eDNA
 
-> Este documento reúne os principais conceitos estudados durante o desenvolvimento do projeto **eDNA Insight**. Seu objetivo é registrar o aprendizado, organizar referências e servir como base para a implementação do software e para a futura escrita do Trabalho de Conclusão de Curso (TCC).
+> Este documento reúne os principais conceitos estudados durante o desenvolvimento do projeto **eDNA Insight**. Seu objetivo é registrar o aprendizado e organizar referências.
 
 ---
 
