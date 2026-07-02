@@ -71,7 +71,7 @@ Exportação em CSV
 ```
 
 ## Módulos desenvolvidos
-1. src/fasta.py
+## 1. src/fasta.py
 
 - Responsável pela leitura de arquivos FASTA.
 
@@ -86,7 +86,7 @@ Exportação em CSV
     }
 ]
 
-2. src/stats.py
+## 2. src/stats.py
 
 -Responsável pelo cálculo de estatísticas básicas das sequências.
 
@@ -100,7 +100,7 @@ Exportação em CSV
 
 - O conteúdo GC corresponde à porcentagem de bases G e C em relação ao tamanho total da sequência.
 
-3. src/similarity.py
+## 3. src/similarity.py
 
 - Responsável pelo cálculo de similaridade entre duas sequências.
 
@@ -109,6 +109,7 @@ Exportação em CSV
 - Exemplo:
 
 ATCG
+
 ATCA
 
 - Resultado:
@@ -117,7 +118,7 @@ ATCA
 
 Esse método é simples e serve apenas como aproximação inicial. Ele não substitui algoritmos reais de alinhamento ou classificação taxonômica.
 
-4. src/taxonomy.py
+## 4. src/taxonomy.py
 
 - Responsável pelo carregamento do banco local e pela identificação da espécie provável.
 
@@ -134,11 +135,11 @@ Escherichia coli,TTTTGGGGAAAACCC
 
 - A função best_similarity_match(sequence, database) compara uma sequência de entrada com todas as sequências do banco e retorna a espécie com maior similaridade.
 
-5. Interface web
+## 5. Interface web
 
 - A interface foi construída com Streamlit no arquivo:
 
-6. app/main.py
+## 6. app/main.py
 
 -Funcionalidades disponíveis:
 ```
@@ -173,31 +174,33 @@ seq3	Escherichia coli	100
 
 A versão atual possui algumas limitações importantes:
 
-utiliza um banco local pequeno;
-não utiliza bancos biológicos reais;
-não realiza alinhamento de sequências;
-não utiliza BLAST, Kraken2, QIIME2 ou DADA2;
-não processa arquivos FASTQ;
-não considera qualidade Phred;
-não possui filtro mínimo de similaridade;
-não possui validação robusta das sequências;
-não gera relatório PDF;
-não possui testes automatizados.
-Próximos passos
+- utiliza um banco local pequeno;
+- não utiliza bancos biológicos reais;
+- não realiza alinhamento de sequências;
+- não utiliza BLAST, Kraken2, QIIME2 ou DADA2;
+- não processa arquivos FASTQ;
+- não considera qualidade Phred;
+- não possui filtro mínimo de similaridade;
+- não possui validação robusta das sequências;
+- não gera relatório PDF;
+- não possui testes automatizados.
 
-## Possíveis evoluções do projeto:
+##Próximos passos
 
-adicionar validação de sequências;
-definir um limiar mínimo de similaridade;
-melhorar o algoritmo de comparação;
-adicionar sequências reais de referência;
-gerar relatório em PDF;
-salvar histórico de análises;
-integrar BLAST;
-integrar bancos como NCBI, SILVA, GTDB ou BOLD;
-adicionar testes automatizados;
-containerizar a aplicação com Docker.
-Conclusão
+Possíveis evoluções do projeto:
+
+- adicionar validação de sequências;
+- definir um limiar mínimo de similaridade;
+- melhorar o algoritmo de comparação;
+- adicionar sequências reais de referência;
+- gerar relatório em PDF;
+- salvar histórico de análises;
+- integrar BLAST;
+- integrar bancos como NCBI, SILVA, GTDB ou BOLD;
+- adicionar testes automatizados;
+- containerizar a aplicação com Docker.
+
+##Conclusão
 
 Este MVP estabelece a base inicial do projeto eDNA Insight. Embora ainda simplificado, o sistema já implementa o fluxo mínimo de análise: entrada de arquivo FASTA, leitura das sequências, cálculo de estatísticas, comparação com banco local e apresentação dos resultados.
 
