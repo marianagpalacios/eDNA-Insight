@@ -71,13 +71,13 @@ Exportação em CSV
 ```
 
 ## Módulos desenvolvidos
-src/fasta.py
+1. src/fasta.py
 
-Responsável pela leitura de arquivos FASTA.
+- Responsável pela leitura de arquivos FASTA.
 
-A função principal é read_fasta(file_path), que recebe o caminho de um arquivo FASTA e retorna uma lista de dicionários contendo o identificador e a sequência de cada registro.
+- A função principal é read_fasta(file_path), que recebe o caminho de um arquivo FASTA e retorna uma lista de dicionários contendo o identificador e a sequência de cada registro.
 
-Exemplo de retorno:
+- Exemplo de retorno:
 
 [
     {
@@ -85,69 +85,72 @@ Exemplo de retorno:
         "sequence": "ATCGATCGATCG"
     }
 ]
-src/stats.py
 
-Responsável pelo cálculo de estatísticas básicas das sequências.
+2. src/stats.py
 
-As principais informações calculadas são:
+-Responsável pelo cálculo de estatísticas básicas das sequências.
 
-número total de sequências;
-menor comprimento;
-maior comprimento;
-comprimento médio;
-conteúdo GC de cada sequência.
+-As principais informações calculadas são:
 
-O conteúdo GC corresponde à porcentagem de bases G e C em relação ao tamanho total da sequência.
+      número total de sequências;
+      menor comprimento;
+      maior comprimento;
+      comprimento médio;
+      conteúdo GC de cada sequência.
 
-src/similarity.py
+- O conteúdo GC corresponde à porcentagem de bases G e C em relação ao tamanho total da sequência.
 
-Responsável pelo cálculo de similaridade entre duas sequências.
+3. src/similarity.py
 
-A função calculate_similarity(seq1, seq2) compara duas sequências posição por posição e calcula a porcentagem de caracteres iguais.
+- Responsável pelo cálculo de similaridade entre duas sequências.
 
-Exemplo:
+- A função calculate_similarity(seq1, seq2) compara duas sequências posição por posição e calcula a porcentagem de caracteres iguais.
+
+- Exemplo:
 
 ATCG
 ATCA
 
-Resultado:
+- Resultado:
 
 75%
 
 Esse método é simples e serve apenas como aproximação inicial. Ele não substitui algoritmos reais de alinhamento ou classificação taxonômica.
 
-src/taxonomy.py
+4. src/taxonomy.py
 
-Responsável pelo carregamento do banco local e pela identificação da espécie provável.
+- Responsável pelo carregamento do banco local e pela identificação da espécie provável.
 
-O banco local é armazenado em:
+- O banco local é armazenado em:
 
 data/reference/species_database.csv
 
-Formato esperado:
+- Formato esperado:
 
 species,sequence
 Danio rerio,ATCGATCGATCGATCG
 Homo sapiens,GGGAAATTTCCCGGG
 Escherichia coli,TTTTGGGGAAAACCC
 
-A função best_similarity_match(sequence, database) compara uma sequência de entrada com todas as sequências do banco e retorna a espécie com maior similaridade.
+- A função best_similarity_match(sequence, database) compara uma sequência de entrada com todas as sequências do banco e retorna a espécie com maior similaridade.
 
-Interface web
+5. Interface web
 
-A interface foi construída com Streamlit no arquivo:
+- A interface foi construída com Streamlit no arquivo:
 
-app/main.py
+6. app/main.py
 
-Funcionalidades disponíveis:
-
+-Funcionalidades disponíveis:
+```
 upload de arquivo FASTA;
 exibição de estatísticas básicas;
 tabela de identificação taxonômica;
 resumo por espécie;
 gráfico de barras;
 exportação dos resultados em CSV.
-Exemplo de entrada
+```
+- Exemplo de entrada
+```
 >seq1
 ATCGATCGATCG
 
@@ -156,12 +159,17 @@ GGGAAATTTCCCGGG
 
 >seq3
 TTTTGGGGAAAACCC
-Exemplo de saída
+```
+
+- Exemplo de saída
+```
 ID	Espécie provável	Similaridade (%)
 seq1	Danio rerio	100
 seq2	Homo sapiens	100
 seq3	Escherichia coli	100
-Limitações
+```
+
+### Limitações
 
 A versão atual possui algumas limitações importantes:
 
@@ -177,7 +185,7 @@ não gera relatório PDF;
 não possui testes automatizados.
 Próximos passos
 
-Possíveis evoluções do projeto:
+## Possíveis evoluções do projeto:
 
 adicionar validação de sequências;
 definir um limiar mínimo de similaridade;
