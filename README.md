@@ -1,4 +1,4 @@
-# 🌿 eDNA Insight
+# 🌿 BioTrace
 
 > Plataforma open source para análise automatizada de DNA ambiental (eDNA), identificação taxonômica e geração de indicadores de biodiversidade.
 
