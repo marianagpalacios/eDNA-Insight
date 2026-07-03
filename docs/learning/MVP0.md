@@ -1,6 +1,6 @@
 ## MVP 0 — Análise inicial de arquivos FASTA
 
-Este documento registra o desenvolvimento inicial do MVP do projeto eDNA Insight, uma aplicação simples para leitura, análise básica e identificação preliminar de sequências em arquivos FASTA.
+Este documento registra o desenvolvimento inicial do MVP do projeto BioTrace, uma aplicação simples para leitura, análise básica e identificação preliminar de sequências em arquivos FASTA.
 
 ## Objetivo
 
@@ -15,7 +15,7 @@ O objetivo deste MVP é validar o fluxo mínimo de funcionamento da aplicação:
 
 ## Estrutura do projeto
 ```
-edna-insight/
+BioTrace/
 ├── app/
 │   └── main.py
 ├── src/
@@ -202,6 +202,6 @@ Possíveis evoluções do projeto:
 
 ## Conclusão
 
-Este MVP estabelece a base inicial do projeto eDNA Insight. Embora ainda simplificado, o sistema já implementa o fluxo mínimo de análise: entrada de arquivo FASTA, leitura das sequências, cálculo de estatísticas, comparação com banco local e apresentação dos resultados.
+Este MVP estabelece a base inicial do projeto BioTrace. Embora ainda simplificado, o sistema já implementa o fluxo mínimo de análise: entrada de arquivo FASTA, leitura das sequências, cálculo de estatísticas, comparação com banco local e apresentação dos resultados.
 
 A estrutura modular permite evolução incremental, mantendo separadas as responsabilidades de leitura, estatística, similaridade, classificação e interface.

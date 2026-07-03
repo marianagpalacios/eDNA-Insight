@@ -1,6 +1,6 @@
 # 📚 Developer Notebook — Fundamentos de Bioinformática para eDNA
 
-> Este documento reúne os principais conceitos estudados durante o desenvolvimento do projeto **eDNA Insight**. Seu objetivo é registrar o aprendizado e organizar referências.
+> Este documento reúne os principais conceitos estudados durante o desenvolvimento do projeto **BioTrace**. Seu objetivo é registrar o aprendizado e organizar referências.
 
 ---
 
@@ -203,7 +203,7 @@ Por essa razão, consegue classificar milhões de sequências em poucos minutos.
 
 ---
 
-# Objetivo do eDNA Insight
+# Objetivo do BioTrace
 
 O projeto não pretende substituir ferramentas consolidadas da bioinformática.
 

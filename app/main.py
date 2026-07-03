@@ -15,7 +15,7 @@ from src.fasta import read_fasta
 from src.stats import summarize_sequences
 from src.taxonomy import load_reference_database, best_similarity_match
 
-st.title("eDNA Insight")
+st.title("BioTrace")
 st.write("MVP para análise simples de arquivos FASTA.")
 
 uploaded_file = st.file_uploader("Envie um arquivo FASTA", type=["fasta", "fa"])
@@ -66,6 +66,6 @@ if uploaded_file:
     st.download_button(
         label="Baixar resultados em CSV",
         data=csv,
-        file_name="edna_results.csv",
+        file_name="Biotrace_results.csv",
         mime="text/csv"
     )

@@ -6,7 +6,7 @@
 
 ## 📖 Sobre o projeto
 
-O **eDNA Insight** é um projeto em desenvolvimento que tem como objetivo simplificar a análise de dados de DNA ambiental (Environmental DNA - eDNA), permitindo que pesquisadores realizem análises de biodiversidade de forma mais acessível, automatizada e reprodutível.
+O **BioTrace** é um projeto em desenvolvimento que tem como objetivo simplificar a análise de dados de DNA ambiental (Environmental DNA - eDNA), permitindo que pesquisadores realizem análises de biodiversidade de forma mais acessível, automatizada e reprodutível.
 
 A proposta é integrar diferentes etapas do pipeline de bioinformática em uma única plataforma, desde a leitura de arquivos de sequenciamento até a geração de relatórios e visualizações interativas.
 
@@ -134,7 +134,7 @@ Planejadas para próximas versões:
 # 📂 Estrutura atual
 
 ```text
-edna-insight/
+BioTrace/
 
 ├── app/
 │   └── main.py
