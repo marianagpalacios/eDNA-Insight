@@ -1,12 +1,18 @@
 from Bio import SeqIO
 
-def read_fasta(file_path):
-    sequences = []
+
+SequenceRecord = dict[str, str]
+
+
+def read_fasta(file_path: str) -> list[SequenceRecord]:
+    sequences: list[SequenceRecord] = []
 
     for record in SeqIO.parse(file_path, "fasta"):
-        sequences.append({
-            "id": record.id,
-            "sequence": str(record.seq)
-        })
+        sequences.append(
+            {
+                "id": str(record.id),
+                "sequence": str(record.seq).replace("\n", "").replace(" ", ""),
+            }
+        )
 
     return sequences
