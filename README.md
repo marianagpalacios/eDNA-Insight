@@ -2,7 +2,7 @@
 
 > Plataforma open source para análise automatizada de DNA ambiental (eDNA), identificação taxonômica e geração de indicadores de biodiversidade.
 
-> **Status:** MVP v0.1.0 — prova de conceito inicial.
+> **Status:** MVP v0.2.0 — análise FASTA com validação, limiar de similaridade, ranking de correspondências e banco local com múltiplas referências por espécie.
 
 ## 📖 Sobre o projeto
 
@@ -29,6 +29,22 @@ Funcionalidades já implementadas:
 * Gráfico de barras com a distribuição das espécies.
 * Exportação dos resultados em CSV.
 * Documentação inicial em `docs/learning`.
+
+
+## ✅ Funcionalidades do MVP v0.2.0
+
+- Validação das sequências antes do processamento.
+- Suporte a bases A, T, C, G e, opcionalmente, N.
+- Exibição das sequências inválidas com motivo.
+- Bloqueio de classificação para sequências inválidas.
+- Limiar mínimo de similaridade configurável.
+- Retorno de "Espécie não identificada" quando nenhuma correspondência ultrapassa o limiar.
+- Ranking das cinco melhores correspondências por sequência.
+- Banco local com múltiplas sequências por espécie.
+- Barra de progresso na interface.
+- Mensagens claras de sucesso, erro e alerta.
+- Camada de serviço para separar regra de negócio da interface.
+- Documentação em `docs/learning`.
 
 ---
 
