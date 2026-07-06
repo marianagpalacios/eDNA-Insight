@@ -12,8 +12,9 @@ A proposta é integrar diferentes etapas do pipeline de bioinformática em uma �
 
 ---
 
-# ✅ O que já foi feito — MVP v0.1.0
+# ✅ O que já foi feito 
 
+## ✅ Funcionalidades do MVP v0.1.0
 A primeira versão funcional do projeto implementa um fluxo simplificado para análise de arquivos FASTA.
 
 Funcionalidades já implementadas:
