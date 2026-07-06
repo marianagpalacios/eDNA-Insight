@@ -1,8 +1,14 @@
->seq1
+>seq1_danio_exacta
 ATCGATCGATCGATCG
 
->seq2
-GGGAAATTTCCCGGG
+>seq2_peixe_aproximado
+ATCGATCGATCGTTTG
 
->seq3
+>seq3_astyanax_exacta
 TTTTGGGGAAAACCC
+
+>seq4_nao_identificada
+AAAAAAAACCCCCCCC
+
+>seq5_invalida
+ATCGXBTA

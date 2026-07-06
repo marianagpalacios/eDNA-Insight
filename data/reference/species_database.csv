@@ -1,6 +1,19 @@
-species,sequence
-Danio rerio,ATCGATCGATCGATCG
-Homo sapiens,GGGAAATTTCCCGGG
-Escherichia coli,TTTTGGGGAAAACCC
-Arabidopsis thaliana,CCCGGGAAATTT
-Saccharomyces cerevisiae,ATATCGCGATAT
+species,id,sequence
+Danio rerio,DRE001,ATCGATCGATCGATCG
+Danio rerio,DRE002,ATCGATCGATCGATTG
+Danio rerio,DRE003,ATCGATCGTTCGATCG
+Cyprinus carpio,CCA001,ATCGATCGATCGTTTG
+Cyprinus carpio,CCA002,ATCGATCGATCAATCG
+Cyprinus carpio,CCA003,ATCGATAGATCGATCA
+Oreochromis niloticus,ONI001,GGGAAATTTCCCGGG
+Oreochromis niloticus,ONI002,GGGAAATTTCCAGGG
+Oreochromis niloticus,ONI003,GGGAAATATCCCGGA
+Astyanax altiparanae,AAL001,TTTTGGGGAAAACCC
+Astyanax altiparanae,AAL002,TTTTGGGGAAATCCC
+Astyanax altiparanae,AAL003,TTTTGGGGCAAACCC
+Salmo salar,SSA001,CCCGGGAAATTT
+Salmo salar,SSA002,CCCGGGAAACTT
+Salmo salar,SSA003,CCCGAGAAATTT
+Saccharomyces cerevisiae,SCE001,ATATCGCGATAT
+Saccharomyces cerevisiae,SCE002,ATATCGCGTTAT
+Saccharomyces cerevisiae,SCE003,ATATCACGATAT
