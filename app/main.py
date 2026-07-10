@@ -5,6 +5,17 @@ import tempfile
 import pandas as pd
 import streamlit as st
 
+from src.config import (
+    DEFAULT_ALLOW_N,
+    DEFAULT_MIN_SIMILARITY,
+    DEFAULT_REFERENCE_DATABASE_PATH,
+    DEFAULT_TOP_N,
+    MAX_SIMILARITY,
+    MIN_SIMILARITY,
+    SIMILARITY_STEP,
+)
+from src.services.analysis_service import AnalysisError, analyze_fasta_file
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -13,12 +24,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 from src.services.analysis_service import AnalysisError, analyze_fasta_file
-
-
-REFERENCE_DATABASE_PATH = (
-    PROJECT_ROOT / "data" / "reference" / "species_database.csv"
-)
-
 
 st.set_page_config(
     page_title="BioTrace",
@@ -39,16 +44,15 @@ with st.sidebar:
     st.header("Parâmetros da análise")
 
     min_similarity = st.slider(
-        "Limiar mínimo de similaridade (%)",
-        min_value=0.0,
-        max_value=100.0,
-        value=95.0,
-        step=0.5,
+        min_value=MIN_SIMILARITY,
+        max_value=MAX_SIMILARITY,
+        value=DEFAULT_MIN_SIMILARITY,
+        step=SIMILARITY_STEP,
     )
 
     allow_n = st.checkbox(
         "Permitir base ambígua N",
-        value=True,
+        value=DEFAULT_ALLOW_N,
     )
 
     st.caption(
@@ -82,10 +86,10 @@ if uploaded_file:
     try:
         analysis = analyze_fasta_file(
             file_path=temp_path,
-            reference_database_path=str(REFERENCE_DATABASE_PATH),
+            reference_database_path=DEFAULT_REFERENCE_DATABASE_PATH,
             min_similarity=min_similarity,
             allow_n=allow_n,
-            top_n=5,
+            top_n=DEFAULT_TOP_N,
             progress_callback=update_progress,
         )
 

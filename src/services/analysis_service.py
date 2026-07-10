@@ -6,6 +6,14 @@ from src.stats import summarize_sequences
 from src.taxonomy import classify_sequence, load_reference_database
 from src.validation import validate_sequences
 
+from pathlib import Path
+
+from src.config import (
+    DEFAULT_ALLOW_N,
+    DEFAULT_MIN_SIMILARITY,
+    DEFAULT_REFERENCE_DATABASE_PATH,
+    DEFAULT_TOP_N,
+)
 
 ProgressCallback = Callable[[float, str], None]
 
@@ -25,10 +33,10 @@ def _notify(
 
 def analyze_fasta_file(
     file_path: str,
-    reference_database_path: str,
-    min_similarity: float = 95.0,
-    allow_n: bool = True,
-    top_n: int = 5,
+    reference_database_path: str | Path = DEFAULT_REFERENCE_DATABASE_PATH,
+    min_similarity: float = DEFAULT_MIN_SIMILARITY,
+    allow_n: bool = DEFAULT_ALLOW_N,
+    top_n: int = DEFAULT_TOP_N,
     progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Run the complete MVP analysis pipeline for a FASTA file."""
