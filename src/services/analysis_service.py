@@ -3,7 +3,6 @@ from typing import Any
 
 from src.fasta import read_fasta
 from src.stats import summarize_sequences
-from src.taxonomy import classify_sequence, load_reference_database
 from src.validation import validate_sequences
 
 from pathlib import Path
@@ -14,6 +13,11 @@ from src.config import (
     DEFAULT_REFERENCE_DATABASE_PATH,
     DEFAULT_TOP_N,
 )
+
+from src.reference.database import ReferenceDatabase
+from src.reference.loader import ReferenceDatabaseLoadError
+from src.reference.validator import ReferenceDatabaseValidationError
+from src.taxonomy import classify_sequence
 
 ProgressCallback = Callable[[float, str], None]
 
@@ -65,7 +69,15 @@ def analyze_fasta_file(
     summary = summarize_sequences(valid_sequences)
 
     _notify(progress_callback, 0.6, "Carregando banco de referência local...")
-    database = load_reference_database(reference_database_path)
+    try:
+        database = ReferenceDatabase.from_csv(
+          reference_database_path
+        )
+    except (
+        ReferenceDatabaseLoadError,
+         ReferenceDatabaseValidationError,
+    ) as error:
+        raise AnalysisError(str(error)) from error
 
     results: list[dict[str, object]] = []
     rankings: dict[str, list[dict[str, object]]] = {}
