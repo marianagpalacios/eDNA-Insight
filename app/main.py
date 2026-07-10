@@ -5,17 +5,6 @@ import tempfile
 import pandas as pd
 import streamlit as st
 
-from src.config import (
-    DEFAULT_ALLOW_N,
-    DEFAULT_MIN_SIMILARITY,
-    DEFAULT_REFERENCE_DATABASE_PATH,
-    DEFAULT_TOP_N,
-    MAX_SIMILARITY,
-    MIN_SIMILARITY,
-    SIMILARITY_STEP,
-)
-from src.services.analysis_service import AnalysisError, analyze_fasta_file
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -23,7 +12,22 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
-from src.services.analysis_service import AnalysisError, analyze_fasta_file
+from src.config import (  # noqa: E402
+    DEFAULT_ALLOW_N,
+    DEFAULT_MIN_SIMILARITY,
+    DEFAULT_REFERENCE_DATABASE_PATH,
+    DEFAULT_TOP_N,
+    LOG_FILE_PATH,
+    MAX_RANKING_RESULTS,
+    MAX_SIMILARITY,
+    MIN_SIMILARITY,
+    SIMILARITY_STEP,
+)
+from src.services.analysis_service import (  # noqa: E402
+    AnalysisError,
+    analyze_fasta_file,
+)
+
 
 st.set_page_config(
     page_title="BioTrace",
@@ -31,12 +35,12 @@ st.set_page_config(
     layout="wide",
 )
 
-
 st.title("🌿 BioTrace")
 
 st.write(
-    "MVP para análise simples de arquivos FASTA com validação de sequências, "
-    "classificação por banco local e exportação dos resultados."
+    "MVP para análise de arquivos FASTA com validação, "
+    "estatísticas, classificação por banco local "
+    "e rastreabilidade."
 )
 
 
@@ -44,6 +48,7 @@ with st.sidebar:
     st.header("Parâmetros da análise")
 
     min_similarity = st.slider(
+        "Limiar mínimo de similaridade (%)",
         min_value=MIN_SIMILARITY,
         max_value=MAX_SIMILARITY,
         value=DEFAULT_MIN_SIMILARITY,
@@ -55,41 +60,61 @@ with st.sidebar:
         value=DEFAULT_ALLOW_N,
     )
 
+    top_n = st.number_input(
+        "Quantidade máxima no ranking",
+        min_value=1,
+        max_value=MAX_RANKING_RESULTS,
+        value=DEFAULT_TOP_N,
+        step=1,
+    )
+
     st.caption(
-        "Se a melhor correspondência ficar abaixo do limiar, "
-        "a sequência será marcada como espécie não identificada."
+        "A similaridade usa distância de edição "
+        "normalizada. Ela considera substituições, "
+        "inserções e deleções simples, mas não "
+        "substitui um alinhamento biológico."
     )
 
 
 uploaded_file = st.file_uploader(
     "Envie um arquivo FASTA",
-    type=["fasta", "fa"],
+    type=["fasta", "fa", "fna"],
 )
 
 
 if uploaded_file:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".fasta") as temp_file:
-        temp_file.write(uploaded_file.read())
-        temp_path = temp_file.name
-
-    progress_bar = st.progress(
-        0.0,
-        text="Preparando análise...",
-    )
-
-    def update_progress(value: float, message: str) -> None:
-        progress_bar.progress(
-            min(max(value, 0.0), 1.0),
-            text=message,
-        )
+    temp_path: str | None = None
 
     try:
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".fasta",
+        ) as temp_file:
+            temp_file.write(uploaded_file.read())
+            temp_path = temp_file.name
+
+        progress_bar = st.progress(
+            0.0,
+            text="Preparando análise...",
+        )
+
+        def update_progress(
+            value: float,
+            message: str,
+        ) -> None:
+            progress_bar.progress(
+                min(max(value, 0.0), 1.0),
+                text=message,
+            )
+
         analysis = analyze_fasta_file(
             file_path=temp_path,
-            reference_database_path=DEFAULT_REFERENCE_DATABASE_PATH,
+            reference_database_path=(
+                DEFAULT_REFERENCE_DATABASE_PATH
+            ),
             min_similarity=min_similarity,
             allow_n=allow_n,
-            top_n=DEFAULT_TOP_N,
+            top_n=int(top_n),
             progress_callback=update_progress,
         )
 
@@ -97,156 +122,300 @@ if uploaded_file:
         st.error(str(error))
         st.stop()
 
-    except ValueError as error:
-        st.error(f"Erro de configuração ou validação: {error}")
-        st.stop()
-
     except Exception as error:
-        st.error(f"Não foi possível concluir a análise: {error}")
+        st.error(
+            f"Não foi possível concluir "
+            f"a análise: {error}"
+        )
         st.stop()
 
     finally:
-        Path(temp_path).unlink(missing_ok=True)
+        if temp_path:
+            Path(temp_path).unlink(
+                missing_ok=True
+            )
 
     valid_count = analysis["valid_count"]
     invalid_count = analysis["invalid_count"]
     total_sequences = analysis["total_sequences"]
 
+    for warning in analysis.get(
+        "reference_warnings",
+        [],
+    ):
+        st.warning(
+            f"Banco de referência: {warning}"
+        )
+
     if invalid_count:
         st.error(
-            f"{invalid_count} sequência(s) inválida(s) foram encontrada(s) "
+            f"{invalid_count} sequência(s) "
+            "inválida(s) foram encontrada(s) "
             "e não serão classificadas."
         )
 
-        invalid_df = pd.DataFrame(analysis["invalid_sequences"])
-
-        invalid_df["invalid_bases"] = invalid_df["invalid_bases"].apply(
-            lambda bases: ", ".join(bases) if bases else "-"
+        invalid_df = pd.DataFrame(
+            analysis["invalid_sequences"]
         )
 
-        invalid_df.columns = [
-            "ID",
-            "Bases inválidas",
-            "Motivo",
-        ]
+        invalid_df["invalid_bases"] = (
+            invalid_df["invalid_bases"].apply(
+                lambda bases: (
+                    ", ".join(bases)
+                    if bases
+                    else "-"
+                )
+            )
+        )
+
+        invalid_df = invalid_df.rename(
+            columns={
+                "id": "ID",
+                "invalid_bases": (
+                    "Bases inválidas"
+                ),
+                "reason": "Motivo",
+            }
+        )
 
         st.dataframe(
             invalid_df,
             use_container_width=True,
+            hide_index=True,
         )
 
     if valid_count == 0:
-        st.warning("Nenhuma sequência válida ficou disponível para análise.")
+        st.warning(
+            "Nenhuma sequência válida ficou "
+            "disponível para análise."
+        )
         st.stop()
 
     st.success(
-        f"Análise concluída: {valid_count} de {total_sequences} "
-        "sequência(s) analisada(s)."
+        f"Análise concluída: {valid_count} "
+        f"de {total_sequences} sequência(s) "
+        "analisada(s)."
     )
 
-    metric_col1, metric_col2, metric_col3 = st.columns(3)
+    overview_columns = st.columns(4)
 
-    metric_col1.metric(
-        "Sequências recebidas",
+    overview_columns[0].metric(
+        "Recebidas",
         total_sequences,
     )
 
-    metric_col2.metric(
-        "Sequências analisadas",
+    overview_columns[1].metric(
+        "Analisadas",
         valid_count,
     )
 
-    metric_col3.metric(
-        "Sequências inválidas",
+    overview_columns[2].metric(
+        "Inválidas",
         invalid_count,
+    )
+
+    overview_columns[3].metric(
+        "Tempo de execução",
+        f"{analysis['execution_time_seconds']:.3f} s",
     )
 
     summary = analysis["summary"]
 
-    st.subheader("Estatísticas")
-
-    stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
-
-    stat_col1.metric(
-        "Total válido",
-        summary["total_sequences"],
+    st.subheader(
+        "Estatísticas de comprimento"
     )
 
-    stat_col2.metric(
-        "Maior sequência",
-        f"{summary['max_length']} bp",
-    )
+    length_columns = st.columns(5)
 
-    stat_col3.metric(
-        "Menor sequência",
+    length_columns[0].metric(
+        "Menor",
         f"{summary['min_length']} bp",
     )
 
-    stat_col4.metric(
-        "Comprimento médio",
+    length_columns[1].metric(
+        "Maior",
+        f"{summary['max_length']} bp",
+    )
+
+    length_columns[2].metric(
+        "Média",
         f"{summary['average_length']} bp",
     )
 
-    gc_df = pd.DataFrame(summary["gc_by_sequence"])
+    length_columns[3].metric(
+        "Mediana",
+        f"{summary['median_length']} bp",
+    )
 
-    if not gc_df.empty:
-        gc_df.columns = [
-            "ID",
-            "GC (%)",
-        ]
+    length_columns[4].metric(
+        "Desvio padrão",
+        f"{summary['length_std_dev']} bp",
+    )
 
-        st.caption("Conteúdo GC por sequência válida")
+    st.subheader(
+        "Composição nucleotídica agregada"
+    )
 
-        st.dataframe(
-            gc_df,
-            use_container_width=True,
-        )
+    composition_columns = st.columns(6)
 
-    st.subheader("Identificação taxonômica")
+    composition_columns[0].metric(
+        "A (%)",
+        summary["a_frequency"],
+    )
 
-    results_df = pd.DataFrame(analysis["results"])
+    composition_columns[1].metric(
+        "T (%)",
+        summary["t_frequency"],
+    )
+
+    composition_columns[2].metric(
+        "C (%)",
+        summary["c_frequency"],
+    )
+
+    composition_columns[3].metric(
+        "G (%)",
+        summary["g_frequency"],
+    )
+
+    composition_columns[4].metric(
+        "AT (%)",
+        summary["at_content"],
+    )
+
+    composition_columns[5].metric(
+        "GC (%)",
+        summary["gc_content"],
+    )
+
+    metrics_df = pd.DataFrame(
+        summary["sequence_metrics"]
+    ).rename(
+        columns={
+            "id": "ID",
+            "length": "Comprimento (bp)",
+            "a_frequency": "A (%)",
+            "t_frequency": "T (%)",
+            "c_frequency": "C (%)",
+            "g_frequency": "G (%)",
+            "at_content": "AT (%)",
+            "gc_content": "GC (%)",
+            "n_count": "N (bases)",
+        }
+    )
+
+    st.caption(
+        "As frequências usam o comprimento total "
+        "como denominador. Quando há N, "
+        "A + T + C + G pode ser menor que 100%."
+    )
+
+    st.dataframe(
+        metrics_df,
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    st.subheader(
+        "Identificação taxonômica"
+    )
+
+    results_df = pd.DataFrame(
+        analysis["results"]
+    )
 
     st.dataframe(
         results_df,
         use_container_width=True,
+        hide_index=True,
     )
 
-    st.subheader("Ranking das cinco melhores correspondências")
+    st.subheader(
+        f"Ranking das {int(top_n)} "
+        "melhores correspondências"
+    )
 
-    for sequence_id, ranking in analysis["rankings"].items():
-        selected_row = results_df.loc[results_df["ID"] == sequence_id].iloc[0]
-        selected_species = selected_row["Espécie escolhida"]
-        identified = selected_row["Status"] == "Identificada"
+    ranking_rows: list[
+        dict[str, object]
+    ] = []
 
-        ranking_df = pd.DataFrame(ranking)
+    for sequence_id, ranking in (
+        analysis["rankings"].items()
+    ):
+        selected_row = results_df.loc[
+            results_df["ID"] == sequence_id
+        ].iloc[0]
 
-        ranking_df.columns = [
-            "Espécie",
-            "Referência",
-            "Similaridade (%)",
+        selected_reference = selected_row[
+            "Referência escolhida"
         ]
 
-        ranking_df["Escolhida"] = ranking_df["Espécie"].apply(
-            lambda species: "✅" if identified and species == selected_species else ""
+        ranking_df = pd.DataFrame(
+            ranking
+        ).rename(
+            columns={
+                "species": "Espécie",
+                "reference_id": "Referência",
+                "similarity": (
+                    "Similaridade (%)"
+                ),
+                "gene": "Gene",
+                "accession": "Accession",
+                "source": "Fonte",
+            }
         )
 
-        with st.expander(f"Sequência {sequence_id}"):
-            st.dataframe(
-                ranking_df.style.apply(
-                    lambda row: [
-                        "font-weight: bold; background-color: #E8F5E9"
-                        if row["Escolhida"] == "✅"
-                        else ""
-                        for _ in row
-                    ],
-                    axis=1,
+        if not ranking_df.empty:
+            ranking_df.insert(
+                0,
+                "Posição",
+                range(
+                    1,
+                    len(ranking_df) + 1,
                 ),
-                use_container_width=True,
             )
 
-    st.subheader("Resumo por espécie escolhida")
+            ranking_df["Escolhida"] = (
+                ranking_df["Referência"].apply(
+                    lambda reference: (
+                        "✅"
+                        if reference
+                        == selected_reference
+                        else ""
+                    )
+                )
+            )
 
-    species_count = results_df["Espécie escolhida"].value_counts().reset_index()
+            for row in ranking_df.to_dict(
+                orient="records"
+            ):
+                ranking_rows.append(
+                    {
+                        "ID da consulta": (
+                            sequence_id
+                        ),
+                        **row,
+                    }
+                )
+
+        with st.expander(
+            f"Sequência {sequence_id}"
+        ):
+            st.dataframe(
+                ranking_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    st.subheader(
+        "Resumo por espécie escolhida"
+    )
+
+    species_count = (
+        results_df["Espécie escolhida"]
+        .value_counts()
+        .reset_index()
+    )
 
     species_count.columns = [
         "Espécie",
@@ -256,19 +425,80 @@ if uploaded_file:
     st.dataframe(
         species_count,
         use_container_width=True,
+        hide_index=True,
     )
-
-    st.subheader("Gráfico de espécies")
 
     st.bar_chart(
         species_count.set_index("Espécie")
     )
 
-    csv = results_df.to_csv(index=False).encode("utf-8")
+    with st.expander(
+        "Banco de referência e logs"
+    ):
+        reference_stats = analysis[
+            "reference_statistics"
+        ]
 
-    st.download_button(
-        label="Baixar resultados em CSV",
-        data=csv,
+        reference_columns = st.columns(3)
+
+        reference_columns[0].metric(
+            "Referências",
+            reference_stats[
+                "reference_count"
+            ],
+        )
+
+        reference_columns[1].metric(
+            "Espécies",
+            reference_stats[
+                "species_count"
+            ],
+        )
+
+        reference_columns[2].metric(
+            "IDs únicos",
+            reference_stats[
+                "id_count"
+            ],
+        )
+
+        st.caption(
+            f"Arquivo de log: `{LOG_FILE_PATH}`"
+        )
+
+    st.subheader("Exportações")
+
+    export_columns = st.columns(3)
+
+    export_columns[0].download_button(
+        label="Baixar resultados",
+        data=results_df.to_csv(
+            index=False
+        ).encode("utf-8"),
         file_name="biotrace_results.csv",
+        mime="text/csv",
+    )
+
+    export_columns[1].download_button(
+        label="Baixar estatísticas",
+        data=metrics_df.to_csv(
+            index=False
+        ).encode("utf-8"),
+        file_name=(
+            "biotrace_sequence_statistics.csv"
+        ),
+        mime="text/csv",
+    )
+
+    ranking_export_df = pd.DataFrame(
+        ranking_rows
+    )
+
+    export_columns[2].download_button(
+        label="Baixar ranking",
+        data=ranking_export_df.to_csv(
+            index=False
+        ).encode("utf-8"),
+        file_name="biotrace_rankings.csv",
         mime="text/csv",
     )
