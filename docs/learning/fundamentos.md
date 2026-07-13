@@ -2,6 +2,18 @@
 
 > Este documento reúne os principais conceitos estudados durante o desenvolvimento do projeto **BioTrace**. Seu objetivo é registrar o aprendizado e organizar referências.
 
+## Objetivo
+
+Este documento registra os conceitos científicos usados no desenvolvimento do BioTrace.
+
+O projeto não pretende substituir pipelines de produção. Ele funciona como instrumento de aprendizagem para conectar:
+
+- dados biológicos;
+- algoritmos;
+- qualidade de software;
+- rastreabilidade;
+- limitações científicas.
+
 ---
 
 # Visão Geral
