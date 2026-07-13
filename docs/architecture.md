@@ -1,27 +1,393 @@
 # Arquitetura do BioTrace
 
-O BioTrace segue uma arquitetura simples, modular e incremental, adequada para um MVP científico em evolução.
+## 1. Objetivo arquitetural
 
-## Camadas principais
+O BioTrace foi projetado para evoluir de forma incremental, sem antecipar a complexidade de ferramentas maduras de Bioinformática.
 
-- `app/`: interface Streamlit.
-- `src/`: módulos centrais da aplicação.
-- `src/services/`: camada de serviço responsável por orquestrar o fluxo de análise.
-- `data/examples/`: arquivos FASTA de exemplo.
-- `data/reference/`: banco local de referência em CSV.
-- `docs/`: documentação técnica e registros de evolução.
+A arquitetura do MVP v0.3.0 prioriza:
 
-## Decisão arquitetural principal
+- responsabilidade única;
+- baixo acoplamento;
+- alta coesão;
+- regras de negócio fora da interface;
+- validação explícita;
+- testabilidade;
+- observabilidade;
+- transparência científica;
+- possibilidade de substituição futura dos componentes.
 
-A interface Streamlit não deve concentrar regra de negócio. Por isso, o fluxo principal foi movido para `src/services/analysis_service.py`.
+---
 
-Esse serviço coordena:
+## 2. Visão geral
 
-1. leitura do FASTA;
-2. validação das sequências;
-3. cálculo de estatísticas;
-4. carregamento do banco de referência;
-5. classificação por similaridade;
-6. montagem dos resultados para a interface.
+```text
+┌──────────────────────────┐
+│     Interface Streamlit  │
+│       app/main.py        │
+└────────────┬─────────────┘
+             │
+             v
+┌──────────────────────────┐
+│   Serviço de análise     │
+│ analysis_service.py      │
+└────────────┬─────────────┘
+             │
+   ┌─────────┼──────────────────────────────────────────────┐
+   │         │         │          │          │              │
+   v         v         v          v          v              v
+ FASTA   Validação  Estatísticas Referência Similaridade  Logging
+                                     │
+                          ┌──────────┼──────────┐
+                          v          v          v
+                        Loader    Validator   Database
+```
 
-Essa organização reduz acoplamento e facilita a criação de testes automatizados em versões futuras.
+---
+
+## 3. Camadas
+
+### 3.1 Interface
+
+Localização:
+
+```text
+app/main.py
+```
+
+Responsabilidades:
+
+- receber o arquivo;
+- coletar parâmetros;
+- apresentar progresso;
+- chamar o serviço;
+- mostrar erros e avisos;
+- renderizar métricas, tabelas e gráficos;
+- disponibilizar exportações.
+
+A interface não deve:
+
+- validar diretamente o banco;
+- calcular similaridade;
+- classificar sequências;
+- definir regras científicas;
+- acessar detalhes internos do DataFrame de referência.
+
+### 3.2 Aplicação
+
+Localização:
+
+```text
+src/services/analysis_service.py
+```
+
+O serviço representa o caso de uso principal: analisar um arquivo FASTA.
+
+Ele coordena os componentes, mas não implementa seus algoritmos internos.
+
+Responsabilidades:
+
+1. iniciar a medição do tempo;
+2. registrar o início da execução;
+3. ler o FASTA;
+4. validar as sequências;
+5. calcular estatísticas;
+6. carregar e validar o banco;
+7. classificar as sequências;
+8. montar a resposta para a interface;
+9. registrar conclusão ou erro.
+
+### 3.3 Domínio e utilitários científicos
+
+Localização:
+
+```text
+src/
+```
+
+Inclui:
+
+- leitura FASTA;
+- validação das sequências;
+- estatísticas;
+- distância de edição;
+- ranking e classificação;
+- configuração;
+- logging.
+
+### 3.4 Camada de referência
+
+Localização:
+
+```text
+src/reference/
+```
+
+A camada separa três responsabilidades:
+
+```text
+CSV -> loader -> DataFrame bruto
+                  |
+                  v
+              validator
+                  |
+                  v
+          DataFrame normalizado
+                  |
+                  v
+          ReferenceDatabase
+```
+
+Essa separação permite trocar a origem dos dados no futuro sem obrigar o algoritmo taxonômico a conhecer CSV ou Pandas.
+
+---
+
+## 4. Fluxo detalhado
+
+### 4.1 Entrada
+
+A interface aceita arquivos:
+
+- `.fasta`;
+- `.fa`;
+- `.fna`.
+
+O conteúdo é gravado em arquivo temporário porque o leitor FASTA trabalha com caminho de arquivo.
+
+### 4.2 Leitura
+
+`src/fasta.py` usa `Bio.SeqIO.parse` e transforma cada registro em:
+
+```python
+{
+    "id": "identificador",
+    "sequence": "ATCG..."
+}
+```
+
+### 4.3 Validação das consultas
+
+`src/validation.py` separa os registros em:
+
+- válidos;
+- inválidos.
+
+O modo padrão aceita:
+
+```text
+A, T, C, G, N
+```
+
+O modo estrito aceita:
+
+```text
+A, T, C, G
+```
+
+### 4.4 Estatísticas
+
+`src/stats.py` calcula métricas agregadas e por sequência.
+
+O desvio padrão usado é populacional (`pstdev`), pois o arquivo analisado é tratado como o conjunto completo daquela execução.
+
+### 4.5 Banco de referência
+
+O loader verifica se o caminho existe e se o CSV pode ser lido.
+
+O validator verifica:
+
+- colunas obrigatórias;
+- linhas vazias;
+- espécies sem nome;
+- IDs vazios;
+- IDs duplicados;
+- sequências vazias;
+- caracteres inválidos;
+- espaços;
+- letras minúsculas;
+- colunas opcionais;
+- possíveis inconsistências de capitalização.
+
+### 4.6 Similaridade
+
+A distância de Levenshtein calcula o menor número de inserções, deleções e substituições.
+
+A pontuação é normalizada pelo comprimento da maior sequência.
+
+### 4.7 Classificação
+
+`src/taxonomy.py`:
+
+1. compara a consulta com cada referência;
+2. conserva a melhor referência de cada espécie;
+3. ordena as espécies;
+4. limita o ranking;
+5. aplica o limiar mínimo;
+6. retorna a identificação ou o rótulo de não identificada.
+
+### 4.8 Saída
+
+O serviço retorna um dicionário com:
+
+- resumo;
+- contagens;
+- registros inválidos;
+- resultados;
+- rankings;
+- estatísticas do banco;
+- avisos;
+- tempo de execução.
+
+---
+
+## 5. Decisões arquiteturais
+
+### ADR-001 — Manter Streamlit apenas como interface
+
+**Decisão:** regras de negócio ficam em `src/`.
+
+**Benefício:** testes não dependem da interface.
+
+**Trade-off:** ainda existe alguma transformação de DataFrames em `app/main.py`, aceitável no MVP.
+
+### ADR-002 — Usar um serviço orquestrador
+
+**Decisão:** `analysis_service.py` coordena o fluxo.
+
+**Benefício:** existe um ponto central para o caso de uso.
+
+**Trade-off:** o serviço pode crescer. Se novos casos de uso surgirem, será necessário dividi-lo.
+
+### ADR-003 — Separar loader, validator e database
+
+**Decisão:** leitura, qualidade e acesso ao banco são responsabilidades independentes.
+
+**Benefício:** prepara a troca do CSV por outra origem.
+
+**Trade-off:** cria mais arquivos e conceitos do que um script único.
+
+### ADR-004 — Erros bloqueantes e avisos
+
+**Decisão:** inconsistências estruturais interrompem a análise; normalizações seguras geram avisos.
+
+**Benefício:** evita descarte silencioso de dados.
+
+**Trade-off:** bancos imperfeitos exigem correção antes da execução.
+
+### ADR-005 — Distância de edição no MVP
+
+**Decisão:** usar Levenshtein em vez de comparação posicional.
+
+**Benefício:** trata indels simples e possui implementação compreensível.
+
+**Trade-off:** não representa adequadamente todos os fenômenos biológicos.
+
+### ADR-006 — Configuração em Python
+
+**Decisão:** valores padrão ficam em `src/config.py`.
+
+**Benefício:** solução simples e tipável.
+
+**Trade-off:** mudanças exigem alteração de código. Configuração externa será considerada quando houver ambientes distintos.
+
+### ADR-007 — Logging padrão do Python
+
+**Decisão:** usar `logging` e `RotatingFileHandler`.
+
+**Benefício:** sem dependência adicional e com rotação.
+
+**Trade-off:** não há estrutura JSON, correlação distribuída ou agregação centralizada.
+
+### ADR-008 — DataFrame encapsulado
+
+**Decisão:** módulos externos usam métodos de `ReferenceDatabase`.
+
+**Benefício:** reduz dependência direta de Pandas.
+
+**Trade-off:** novos tipos de consulta exigem métodos explícitos.
+
+### ADR-009 — Banco real adiado
+
+**Decisão:** a arquitetura de referência entra no v0.3.0; a curadoria científica entra no v0.4.0.
+
+**Benefício:** separa Engenharia de Software de curadoria de dados, permitindo revisar cada tema com profundidade.
+
+**Trade-off:** a classificação do v0.3.0 permanece apenas demonstrativa.
+
+---
+
+## 6. Tratamento de falhas
+
+### Falhas de entrada
+
+- FASTA sem registros: `AnalysisError`;
+- todas as sequências inválidas: resposta sem classificação;
+- registros parcialmente inválidos: válidos continuam, inválidos são relatados.
+
+### Falhas do banco
+
+- arquivo inexistente;
+- caminho que não é arquivo;
+- CSV vazio;
+- CSV malformado;
+- colunas ausentes;
+- conteúdo inválido.
+
+Essas falhas são convertidas em mensagens compreensíveis para a interface.
+
+### Falhas inesperadas
+
+A interface possui tratamento genérico para impedir que a aplicação encerre sem retorno ao usuário. Em versões futuras, exceções internas devem ser classificadas com mais precisão.
+
+---
+
+## 7. Testabilidade
+
+A suíte atual cobre funções e componentes isolados:
+
+- parser FASTA;
+- validação;
+- loader;
+- validator;
+- banco;
+- similaridade;
+- classificação;
+- estatísticas;
+- logging.
+
+Lacunas:
+
+- teste integrado do serviço;
+- teste automatizado da interface;
+- teste de desempenho;
+- teste com arquivos grandes;
+- teste de compatibilidade entre versões do Python.
+
+---
+
+## 8. Pontos de extensão
+
+A arquitetura já permite:
+
+- substituir o CSV por outra fonte dentro da camada de referência;
+- introduzir um alinhador sem alterar a interface;
+- criar novos exportadores;
+- adicionar manifesto de execução;
+- criar uma CLI;
+- introduzir modelos tipados para respostas;
+- integrar BLAST como estratégia futura;
+- adicionar FASTQ antes da validação taxonômica.
+
+---
+
+## 9. Limitações arquiteturais
+
+- contratos baseados em dicionários;
+- ausência de interface formal para algoritmos de similaridade;
+- ausência de injeção explícita de dependências;
+- serviço principal ainda retorna estrutura ampla;
+- logging global configurado no import;
+- ausência de CI;
+- ausência de empacotamento;
+- ausência de versionamento formal do esquema do banco.
+
+Essas limitações são aceitáveis no MVP e devem ser atacadas apenas quando houver necessidade concreta.

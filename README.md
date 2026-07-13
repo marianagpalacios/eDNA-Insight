@@ -2,143 +2,254 @@
 
 > Plataforma open source para análise automatizada de DNA ambiental (eDNA), identificação taxonômica simplificada e geração de indicadores iniciais de biodiversidade.
 
-> **Status:** MVP v0.2.0 — análise de arquivos FASTA com validação de sequências, limiar mínimo de similaridade, ranking de correspondências e banco local com múltiplas referências por espécie.
+**Versão atual:** MVP v0.3.0  
+**Foco da versão:** qualidade dos dados, confiabilidade da análise, testes automatizados, observabilidade e preparação arquitetural.
 
 ---
 
-## 📖 Sobre o projeto
+## Sobre o projeto
 
-O **BioTrace** é um software científico em desenvolvimento voltado para análise inicial de sequências de DNA ambiental, conhecido como **eDNA** (*Environmental DNA*). O objetivo do projeto é tornar etapas básicas de análise bioinformática mais acessíveis, reprodutíveis e compreensíveis por meio de uma interface web simples feita com Streamlit.
+O BioTrace é um projeto incremental criado para estudar Engenharia de Software e Bioinformática por meio da construção de um pipeline simplificado de análise de sequências.
 
-Nesta versão, o BioTrace ainda não substitui ferramentas consolidadas de bioinformática, como BLAST, Kraken2, QIIME2 ou DADA2. O foco atual é construir a base do sistema de forma incremental, utilizando apenas arquivos FASTA, banco local em CSV, Python, Biopython, Pandas e Streamlit.
+A aplicação recebe arquivos FASTA, valida as sequências, calcula estatísticas, compara cada sequência com um banco local de referência e apresenta uma classificação taxonômica simplificada.
 
----
+O objetivo atual não é substituir ferramentas consolidadas, como BLAST, Kraken2, QIIME 2 ou DADA2. O projeto prioriza:
 
-## ✅ Funcionalidades implementadas
+- arquitetura compreensível;
+- responsabilidades bem separadas;
+- código testável;
+- decisões documentadas;
+- evolução incremental;
+- transparência sobre limitações científicas.
 
-### MVP v0.1.0 — Base inicial
-
-- Leitura de arquivos FASTA com Biopython.
-- Upload de arquivos pela interface Streamlit.
-- Cálculo de estatísticas básicas das sequências.
-- Cálculo de conteúdo GC.
-- Cálculo simples de similaridade entre sequências.
-- Identificação taxonômica simplificada com banco local em CSV.
-- Exibição dos resultados em tabela.
-- Gráfico de distribuição por espécie.
-- Exportação dos resultados em CSV.
-- Documentação inicial em `docs/learning`.
-
-### MVP v0.2.0 — Evolução incremental
-
-- Renomeação completa do projeto para **BioTrace**.
-- Validação das sequências antes do processamento.
-- Aceitação das bases `A`, `T`, `C`, `G` e, opcionalmente, `N`.
-- Bloqueio de classificação para sequências inválidas.
-- Exibição das sequências inválidas com motivo e bases problemáticas.
-- Limiar mínimo de similaridade configurável pela interface.
-- Retorno de **Espécie não identificada** quando nenhuma correspondência ultrapassa o limiar.
-- Ranking das cinco melhores correspondências por sequência analisada.
-- Destaque visual da espécie escolhida no ranking.
-- Banco local com múltiplas sequências de referência por espécie.
-- Barra de progresso durante a análise.
-- Mensagens claras de sucesso, erro e alerta.
-- Indicadores de sequências recebidas, analisadas e inválidas.
-- Camada de serviço para separar regra de negócio da interface.
-- Atualização da documentação técnica do projeto.
+> **Aviso científico:** os resultados produzidos pelo MVP são demonstrativos e não devem ser usados isoladamente para conclusões taxonômicas, ecológicas, clínicas ou ambientais.
 
 ---
 
-## 🧬 Fluxo atual de processamento
+## Escopo do MVP v0.3.0
 
-O fluxo do MVP v0.2.0 funciona da seguinte forma:
+O MVP v0.3.0 consolida a base de qualidade e confiabilidade do BioTrace.
 
-1. O usuário envia um arquivo FASTA pela interface.
-2. O arquivo é salvo temporariamente para leitura.
-3. O BioTrace lê as sequências usando Biopython.
-4. As sequências são validadas antes de qualquer análise.
-5. Sequências inválidas são separadas e não são classificadas.
-6. Sequências válidas seguem para cálculo de estatísticas.
-7. O banco local de referência em CSV é carregado.
-8. Cada sequência válida é comparada com todas as sequências do banco.
-9. O sistema calcula um ranking das melhores correspondências por espécie.
-10. O limiar mínimo de similaridade é aplicado.
-11. Os resultados são exibidos em tabela, ranking, gráfico e exportação CSV.
+### Entregas desta versão
+
+- infraestrutura de testes com `pytest`;
+- configuração centralizada em `src/config.py`;
+- camada dedicada ao banco de referência;
+- validação estrutural do CSV de referência;
+- distinção entre erros bloqueantes e avisos de normalização;
+- representação do banco por meio de `ReferenceDatabase`;
+- cálculo de similaridade baseado em distância de edição;
+- suporte a substituições, inserções e deleções simples;
+- frequências de A, T, C e G;
+- conteúdo AT e GC;
+- mediana e desvio padrão do comprimento;
+- métricas por sequência;
+- sistema de logs com rotação de arquivos;
+- tempo de execução da análise;
+- exportação dos resultados, estatísticas e rankings;
+- interface atualizada para as novas métricas;
+- suíte automatizada com 28 testes.
+
+### Alteração de escopo
+
+A curadoria de um banco com sequências biológicas reais, accessions rastreáveis e documentação de proveniência foi transferida para o **MVP v0.4.0**.
+
+O CSV atual continua sendo um conjunto demonstrativo. A arquitetura de carregamento, validação e consulta já está preparada para receber um banco curado posteriormente.
 
 ---
 
-## 🧪 Validação de sequências
+## Funcionalidades
 
-Antes da classificação, o BioTrace verifica se as sequências possuem apenas bases válidas.
+### Leitura e validação
 
-Por padrão, são aceitas:
+- upload de arquivos `.fasta`, `.fa` e `.fna`;
+- leitura com Biopython;
+- normalização das sequências para letras maiúsculas;
+- aceitação configurável da base ambígua `N`;
+- identificação de sequências vazias;
+- identificação de caracteres inválidos;
+- separação entre registros válidos e inválidos.
+
+### Estatísticas
+
+Para o conjunto analisado:
+
+- quantidade de sequências;
+- comprimento mínimo;
+- comprimento máximo;
+- comprimento médio;
+- mediana do comprimento;
+- desvio padrão populacional do comprimento;
+- frequência agregada de A, T, C e G;
+- porcentagem AT;
+- porcentagem GC.
+
+Para cada sequência:
+
+- comprimento;
+- frequência de A, T, C e G;
+- porcentagem AT;
+- porcentagem GC;
+- quantidade de bases `N`.
+
+### Similaridade e classificação
+
+- distância de edição de Levenshtein;
+- similaridade normalizada entre 0% e 100%;
+- tratamento de substituições;
+- tratamento de inserções e deleções simples;
+- limiar mínimo configurável;
+- melhor referência por espécie;
+- ranking configurável;
+- retorno de `Espécie não identificada` quando o limiar não é alcançado.
+
+### Banco de referência
+
+- carregamento isolado em `src/reference/loader.py`;
+- validação isolada em `src/reference/validator.py`;
+- acesso encapsulado em `src/reference/database.py`;
+- validação de colunas obrigatórias;
+- detecção de IDs duplicados;
+- detecção de espécies sem nome;
+- detecção de sequências vazias;
+- detecção de caracteres inválidos;
+- normalização auditável de espaços e minúsculas;
+- listagem de espécies e IDs;
+- estatísticas básicas do banco.
+
+### Observabilidade
+
+- registro do início e fim da análise;
+- quantidade de sequências recebidas;
+- IDs de sequências inválidas;
+- erros de carregamento ou validação do banco;
+- avisos de normalização;
+- tempo de execução;
+- rotação automática dos arquivos de log.
+
+### Interface e exportação
+
+- barra de progresso;
+- métricas gerais;
+- composição nucleotídica;
+- tabela de métricas por sequência;
+- tabela de identificação taxonômica;
+- ranking por sequência;
+- gráfico de contagem por espécie;
+- resumo do banco de referência;
+- exportação dos resultados em CSV;
+- exportação das estatísticas em CSV;
+- exportação do ranking em CSV.
+
+---
+
+## Arquitetura
 
 ```text
-A, T, C, G, N
+Interface Streamlit
+        |
+        v
+Analysis Service
+        |
+        +--> FASTA Reader
+        +--> Sequence Validator
+        +--> Statistics
+        +--> Reference Layer
+        |      +--> Loader
+        |      +--> Validator
+        |      +--> ReferenceDatabase
+        +--> Similarity
+        +--> Taxonomy
+        +--> Logging
 ```
 
-A base `N` representa uma base ambígua. Pela interface, o usuário pode desativar a aceitação de `N`, permitindo apenas:
+A interface não executa as regras centrais. Ela coleta os parâmetros, chama o serviço e apresenta os resultados.
 
-```text
-A, T, C, G
-```
+O `analysis_service.py` atua como orquestrador do caso de uso, enquanto os demais módulos mantêm responsabilidades específicas.
 
-Sequências vazias ou com caracteres inválidos são exibidas ao usuário e não entram no processo de classificação.
+Mais detalhes estão em [`docs/architecture.md`](docs/architecture.md).
 
 ---
 
-## 🎚️ Limiar mínimo de similaridade
+## Fluxo da análise
 
-A interface possui um parâmetro configurável chamado **Limiar mínimo de similaridade (%)**.
-
-Exemplo:
-
-```text
-95%
-```
-
-Se a melhor correspondência de uma sequência estiver abaixo desse valor, o resultado será:
-
-```text
-Espécie não identificada
-```
-
-Isso evita que o sistema force uma identificação quando a similaridade encontrada é baixa.
+1. O usuário envia um arquivo FASTA.
+2. A interface salva o conteúdo em um arquivo temporário.
+3. O serviço lê os registros.
+4. As sequências são validadas.
+5. Sequências inválidas são separadas.
+6. As estatísticas são calculadas para as sequências válidas.
+7. O banco local é carregado.
+8. O banco é validado e normalizado.
+9. Cada sequência válida é comparada às referências.
+10. O ranking é calculado por espécie.
+11. O limiar mínimo é aplicado.
+12. Os resultados são apresentados e disponibilizados para exportação.
+13. Eventos relevantes são registrados no log.
 
 ---
 
-## 🧾 Banco de referência local
+## Algoritmo de similaridade
 
-O banco de referência fica em:
+A similaridade é calculada a partir da distância de edição:
+
+```text
+similaridade = (1 - distância / maior_comprimento) × 100
+```
+
+A distância representa a menor quantidade de operações necessárias para transformar uma sequência na outra:
+
+- inserção;
+- deleção;
+- substituição.
+
+### Limitações
+
+Esse método é mais robusto que a comparação posição a posição, mas não é um alinhamento biológico completo.
+
+Ele não possui:
+
+- penalidade diferenciada para abertura e extensão de gaps;
+- matriz de substituição;
+- alinhamento local;
+- traceback;
+- complemento reverso automático;
+- modelo de evolução molecular;
+- otimização para bancos grandes.
+
+Por isso, a pontuação deve ser interpretada como uma medida computacional didática.
+
+---
+
+## Banco de referência atual
+
+O arquivo padrão está em:
 
 ```text
 data/reference/species_database.csv
 ```
 
-A estrutura esperada é:
-
-```csv
-species,id,sequence
-Danio rerio,DRE001,ATCGATCGATCGATCG
-Danio rerio,DRE002,ATCGATCGATCGATTG
-Cyprinus carpio,CCA001,ATCGATCGATCGTTTG
-```
-
-Cada linha representa uma sequência de referência. A mesma espécie pode aparecer em várias linhas, desde que cada sequência tenha um `id` próprio.
-
-Colunas obrigatórias:
+As colunas obrigatórias são:
 
 | Coluna | Descrição |
 |---|---|
-| `species` | Nome da espécie de referência. |
-| `id` | Identificador único da sequência de referência. |
-| `sequence` | Sequência de DNA usada na comparação. |
+| `species` | Nome da espécie |
+| `id` | Identificador único da referência |
+| `sequence` | Sequência de nucleotídeos |
 
-A classificação considera todas as sequências disponíveis no banco. Para o ranking final, cada espécie aparece uma vez, representada pela sua melhor sequência de referência.
+As colunas opcionais são:
+
+| Coluna | Descrição |
+|---|---|
+| `gene` | Gene ou marcador |
+| `accession` | Identificador no banco de origem |
+| `source` | Fonte do registro |
+
+O banco incluído nesta versão é demonstrativo e não possui curadoria científica suficiente para uso real. A substituição por sequências reais e rastreáveis faz parte do MVP v0.4.0.
 
 ---
 
-## 📂 Estrutura atual do projeto
+## Estrutura do projeto
 
 ```text
 BioTrace/
@@ -156,41 +267,59 @@ BioTrace/
 │   └── learning/
 │       ├── MVP0.md
 │       ├── MVP1.md
+│       ├── MVP2.md
 │       └── fundamentos.md
+├── logs/
+│   └── .gitkeep
 ├── src/
+│   ├── reference/
+│   │   ├── __init__.py
+│   │   ├── database.py
+│   │   ├── loader.py
+│   │   └── validator.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   └── analysis_service.py
 │   ├── __init__.py
+│   ├── config.py
 │   ├── fasta.py
+│   ├── logging_config.py
 │   ├── similarity.py
 │   ├── stats.py
 │   ├── taxonomy.py
-│   ├── validation.py
-│   └── services/
-│       ├── __init__.py
-│       └── analysis_service.py
+│   └── validation.py
+├── tests/
+│   ├── reference/
+│   │   ├── test_database.py
+│   │   ├── test_loader.py
+│   │   └── test_validator.py
+│   ├── conftest.py
+│   ├── test_fasta.py
+│   ├── test_logging_config.py
+│   ├── test_similarity.py
+│   ├── test_stats.py
+│   ├── test_taxonomy.py
+│   └── test_validation.py
 ├── .gitignore
+├── pytest.ini
+├── requirements-dev.txt
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 🧱 Organização dos módulos
+## Requisitos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `app/main.py` | Interface Streamlit. Exibe upload, parâmetros, mensagens, tabelas, ranking, gráfico e exportação. |
-| `src/fasta.py` | Leitura de arquivos FASTA usando Biopython. |
-| `src/validation.py` | Validação das sequências e separação entre válidas e inválidas. |
-| `src/stats.py` | Cálculo de estatísticas básicas e conteúdo GC. |
-| `src/similarity.py` | Cálculo simples de similaridade entre sequências. |
-| `src/taxonomy.py` | Carregamento do banco local, ranking e classificação por similaridade. |
-| `src/services/analysis_service.py` | Orquestra o fluxo completo de análise. |
+- Python 3;
+- Git;
+- ambiente virtual recomendado.
 
-A interface Streamlit não concentra mais as regras principais de negócio. Essa responsabilidade foi movida para a camada de serviço em `src/services/analysis_service.py`.
+O MVP foi executado durante o desenvolvimento em ambiente Windows com Python 3.14.2. A compatibilidade com outras versões deve ser validada pela futura integração contínua.
 
 ---
 
-## 🚀 Como executar o projeto
+## Instalação
 
 ### 1. Clonar o repositório
 
@@ -199,137 +328,170 @@ git clone https://github.com/marianagpalacios/BioTrace.git
 cd BioTrace
 ```
 
-### 2. Criar ambiente virtual
+### 2. Criar o ambiente virtual
 
-No Windows:
+Windows PowerShell:
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 ```
 
-No Linux/macOS:
+Linux ou macOS:
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Instalar dependências
+### 3. Instalar as dependências da aplicação
 
 ```bash
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-### 4. Executar a aplicação
+Para desenvolvimento e testes:
 
 ```bash
-streamlit run app/main.py
+python -m pip install -r requirements-dev.txt
 ```
 
 ---
 
-## 🧪 Como testar manualmente
+## Execução
 
-Use o arquivo de exemplo:
+```bash
+python -m streamlit run app/main.py
+```
+
+Depois, abra o endereço indicado pelo Streamlit no navegador.
+
+Um arquivo de exemplo está disponível em:
 
 ```text
 data/examples/sample.fasta
 ```
 
-Com o limiar padrão de 95%, o comportamento esperado é:
+---
 
-- sequências compatíveis com o banco devem ser identificadas;
-- sequências com baixa similaridade devem aparecer como **Espécie não identificada**;
-- sequências com bases inválidas devem ser bloqueadas e exibidas como inválidas;
-- o ranking deve mostrar as cinco melhores correspondências disponíveis.
+## Testes
 
-Também é possível verificar a sintaxe do projeto com:
+Execute toda a suíte:
+
+```bash
+python -m pytest
+```
+
+Execute um arquivo específico:
+
+```bash
+python -m pytest tests/test_similarity.py -v
+```
+
+Valide a compilação:
 
 ```bash
 python -m compileall app src
 ```
 
----
+Na conclusão do MVP v0.3.0, a suíte contém 28 testes cobrindo:
 
-## 🛠️ Tecnologias utilizadas
+- leitura FASTA;
+- validação de sequências;
+- carregamento do banco;
+- validação do banco;
+- abstração do banco;
+- similaridade;
+- classificação;
+- estatísticas;
+- logging.
 
-- Python
-- Streamlit
-- Biopython
-- Pandas
-
----
-
-## 🗺️ Roadmap
-
-### Versão 0.1.0 — MVP inicial
-
-- [x] Leitura de arquivos FASTA.
-- [x] Upload pela interface.
-- [x] Estatísticas básicas.
-- [x] Conteúdo GC.
-- [x] Banco local em CSV.
-- [x] Similaridade simples.
-- [x] Identificação taxonômica simplificada.
-- [x] Tabela, gráfico e exportação CSV.
-
-### Versão 0.2.0 — Validação, ranking e melhor organização
-
-- [x] Validação de sequências.
-- [x] Suporte opcional à base `N`.
-- [x] Limiar mínimo de similaridade.
-- [x] Retorno de **Espécie não identificada** abaixo do limiar.
-- [x] Ranking das cinco melhores correspondências.
-- [x] Banco local com múltiplas sequências por espécie.
-- [x] Barra de progresso.
-- [x] Mensagens de sucesso, erro e alerta.
-- [x] Camada de serviço para orquestração da análise.
-- [x] Atualização da documentação.
-
-### Próximo MVP sugerido — v0.3.0
-
-Foco recomendado: **qualidade e confiabilidade**.
-
-- [ ] Criar testes automatizados.
-- [ ] Testar validação de sequências.
-- [ ] Testar limiar mínimo de similaridade.
-- [ ] Testar ranking das correspondências.
-- [ ] Validar o banco de referência antes da análise.
-- [ ] Detectar IDs duplicados no banco local.
-- [ ] Exportar também o ranking completo em CSV.
-- [ ] Melhorar tratamento de empates entre espécies.
-- [ ] Adicionar documentação de contribuição.
-
-### Versões futuras
-
-- [ ] Suporte a FASTQ.
-- [ ] Estatísticas de qualidade Phred.
-- [ ] Índices de biodiversidade.
-- [ ] Relatórios em PDF.
-- [ ] Docker.
-- [ ] GitHub Actions.
-- [ ] Integração futura com ferramentas consolidadas de bioinformática, como BLAST ou Kraken2.
+A suíte ainda não cobre integralmente a interface e o fluxo completo do serviço.
 
 ---
 
-## ⚠️ Limitações atuais
+## Logs
 
-O BioTrace v0.2.0 ainda possui limitações importantes:
+O arquivo padrão é:
 
-- não utiliza BLAST;
-- não utiliza Kraken2;
-- não utiliza QIIME2;
-- não utiliza DADA2;
-- não acessa bancos online;
-- não processa arquivos FASTQ;
-- não realiza alinhamento biológico real;
-- a similaridade ainda é calculada por comparação simples de posições.
+```text
+logs/biotrace.log
+```
 
-Essas limitações são intencionais nesta fase, pois o projeto está evoluindo como MVP incremental.
+Os arquivos `.log` são ignorados pelo Git. Apenas `logs/.gitkeep` é versionado.
+
+O logger usa rotação, evitando crescimento indefinido do arquivo.
 
 ---
 
-## 📌 Observação científica
+## Configuração
 
-Os resultados gerados nesta versão devem ser interpretados como uma demonstração computacional e educacional do fluxo de análise. Para aplicações científicas reais, será necessário integrar métodos de alinhamento, bancos de referência curados, controle de qualidade e validação estatística.
+Os valores padrão estão centralizados em:
+
+```text
+src/config.py
+```
+
+Entre eles:
+
+- caminho do banco;
+- caminho do log;
+- limiar padrão;
+- aceitação da base `N`;
+- quantidade padrão do ranking;
+- colunas obrigatórias e opcionais.
+
+A versão atual usa configuração em código. Arquivo externo de configuração e variáveis de ambiente podem ser introduzidos quando houver necessidade real.
+
+---
+
+## Documentação
+
+- [Arquitetura](docs/architecture.md)
+- [Módulos](docs/modules.md)
+- [Roadmap](docs/roadmap.md)
+- [Fundamentos de Bioinformática](docs/learning/fundamentos.md)
+- [Registro do MVP v0.3.0](docs/learning/MVP2.md)
+
+---
+
+## Limitações atuais
+
+- banco de referência demonstrativo;
+- ausência de proveniência científica dos registros atuais;
+- ausência de FASTQ e escores Phred;
+- ausência de complemento reverso;
+- ausência de alinhamento biológico;
+- ausência de BLAST;
+- comparação exaustiva com todas as referências;
+- ausência de hashes e manifesto da execução;
+- ausência de CI;
+- ausência de testes de integração completos;
+- ausência de empacotamento da aplicação;
+- ausência de licença formal no repositório.
+
+---
+
+## Próxima versão
+
+O MVP v0.4.0 será dedicado ao banco de referência:
+
+- seleção de um marcador biológico;
+- sequências reais;
+- accessions verificáveis;
+- fontes documentadas;
+- múltiplas referências por espécie;
+- validações biológicas adicionais;
+- versão e checksum do banco;
+- documentação de proveniência e limitações.
+
+Consulte [`docs/roadmap.md`](docs/roadmap.md) para o plano completo.
+
+---
+
+## Licença
+
+O repositório ainda precisa de um arquivo `LICENSE` para formalizar os direitos de uso, modificação e distribuição.
+
+Até que uma licença seja adicionada, o código é público, mas seus termos jurídicos de reutilização não estão formalmente definidos.
